@@ -16,19 +16,24 @@ import pprint
 
 
 VERIFY_TOKEN = '7thseptember2016'
-PAGE_ACCESS_TOKEN = 'EAAYO3MZBoz10BAFZCfKkEd3kPWMuQjoUzbF4zGU2sxYxbTofYYglXVtDJOsX9aaAUFTGdCuEU0ZBuxIN94LvPcGQkasoQIqJOV0ZAvnTb8EMAVhTXpMWA29xuVhmvCIfupFrdT7BYFmtkDDB2ZCizdgjOzxFM2TPviOdGySRk5gZDZD'
+PAGE_ACCESS_TOKEN = 'EAAYO3MZBoz10BAN7mWot28ysn3YyJhnNPSIwJiFCzwi5k39M0FnEKkEZCkjZA5rYCnmSI0ikiQVKxycLKc5dc415D4vOPBaA4Y2WpfiOTPd0UNHiDjwivZCZCc404Xrrtam6NQq4OKpFZBE9hMeidP3CZAUHQqcLY7gn4ng9OdTOQZDZD'
 
 
-def scrape_spreadsheet_colourbro():
-    url = 'https://spreadsheets.google.com/feeds/list/1FChO1iS-SnEw9a3JUnUT1ZInLfCaETpvYb7Y_2egOq0/od6/public/values?alt=json'
+def scrape_spreadsheet():
+    sheet_id = '1_4NKNJ5_f82RYqwYmv3FqX8w-_6TuGHgDHrA5dTVGUg/edit#gid=0'
+    url = 'https://spreadsheets.google.com/feeds/list/%s/od6/public/values?alt=json'%(sheet_id)
 
     resp = requests.get(url=url)
     data = json.loads(resp.text)
     arr =[]
+
     for entry in data['feed']['entry']:
-        print entry['gsx$name']['$t']
-        d = dict(colour_name = entry['gsx$name']['$t'],
-                colour_hex = entry['gsx$colour1']['$t']) 
+        d = {}
+        for k,v in entry.iteritems():
+            if k.startswith('gsx'):
+                key_name = k.split('$')[-1]
+                d[key_name] = entry[k]['$t']
+
         arr.append(d)
 
     return arr
@@ -55,16 +60,71 @@ def set_greeting_text():
 def index(request):
     post_facebook_message('asd','asdasd')
     search_string = request.GET.get('text') or 'foo'
-    output_text = search_string
+    output_text = gen_response_object('fbid',item_type='teacher')
     return HttpResponse(output_text, content_type='application/json')
 
 
+def gen_response_object(fbid,item_type='course'):
+    spreadsheet_object = scrape_spreadsheet()
+    item_arr = [i for i in spreadsheet_object if i['itemtype'] == item_type]
+    elements_arr = []
+
+    for i in item_arr:
+        sub_item = {
+                        "title":i['itemname'],
+                        "item_url":i['itemlink'],
+                        "image_url":i['itempicture'],
+                        "subtitle":i['itemdescription'],
+                        "buttons":[
+                          {
+                            "type":"web_url",
+                            "url":i['itemlink'],
+                            "title":"Open"
+                          },
+                          {
+                            "type":"element_share"
+                          }              
+                        ]
+                      }
+        elements_arr.append(sub_item)
+
+
+    response_object = {
+              "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "attachment":{
+                  "type":"template",
+                  "payload":{
+                    "template_type":"generic",
+                    "elements":elements_arr
+                  }
+                }
+              }
+            }
+
+    return json.dumps(response_object)
+
 def post_facebook_message(fbid,message_text):
     post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
-    
+    message_text = message_text.lower()
+
     output_text = message_text
 
-    response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+    if message_text in 'teachers,teacher,professors,professor'.split(','):
+        item_type = 'teacher'
+    
+    elif message_text in 'why,features,points'.split(','):
+        item_type = 'why'
+
+    elif message_text in 'course,courses,lectures,batch,next batch'.split(','):
+        item_type = 'course'
+
+
+    response_msg = gen_response_object(fbid,item_type='teacher')
+
+    #response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
     requests.post(post_message_url, 
                     headers={"Content-Type": "application/json"},
                     data=response_msg)
