@@ -20,7 +20,7 @@ PAGE_ACCESS_TOKEN = 'EAAYO3MZBoz10BAN7mWot28ysn3YyJhnNPSIwJiFCzwi5k39M0FnEKkEZCk
 
 
 def scrape_spreadsheet():
-    sheet_id = '1_4NKNJ5_f82RYqwYmv3FqX8w-_6TuGHgDHrA5dTVGUg/edit#gid=0'
+    sheet_id = '1_4NKNJ5_f82RYqwYmv3FqX8w-_6TuGHgDHrA5dTVGUg'
     url = 'https://spreadsheets.google.com/feeds/list/%s/od6/public/values?alt=json'%(sheet_id)
 
     resp = requests.get(url=url)
