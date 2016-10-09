@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'dashboard',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -52,6 +53,10 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'codingblockchatbot.urls'
 
 WSGI_APPLICATION = 'codingblockchatbot.wsgi.application'
+
+
+
+TEMPLATE_PATH = os.path.join(BASE_DIR, 'templates')
 
 
 # Database

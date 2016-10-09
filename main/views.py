@@ -59,7 +59,7 @@ def set_greeting_text():
 
 
 def index(request):
-    #set_menu()
+    set_menu()
     handle_postback('fbid','MENU_CALL')
     post_facebook_message('asd','asdasd')
     search_string = request.GET.get('text') or 'foo'
