@@ -55,9 +55,11 @@ ROOT_URLCONF = 'codingblockchatbot.urls'
 WSGI_APPLICATION = 'codingblockchatbot.wsgi.application'
 
 
-
 TEMPLATE_PATH = os.path.join(BASE_DIR, 'templates')
 
+TEMPLATE_DIRS = (
+    TEMPLATE_PATH,
+)
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
