@@ -14,7 +14,6 @@ import random
 import pprint
 # Create your views here.
 
-from dashboard.models import messages
 
 
 VERIFY_TOKEN = '7thseptember2016'
