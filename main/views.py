@@ -14,10 +14,47 @@ import random
 import pprint
 # Create your views here.
 
+from dashboard.models import Messages
+
 
 
 VERIFY_TOKEN = '7thseptember2016'
 PAGE_ACCESS_TOKEN = 'EAAYO3MZBoz10BAN7mWot28ysn3YyJhnNPSIwJiFCzwi5k39M0FnEKkEZCkjZA5rYCnmSI0ikiQVKxycLKc5dc415D4vOPBaA4Y2WpfiOTPd0UNHiDjwivZCZCc404Xrrtam6NQq4OKpFZBE9hMeidP3CZAUHQqcLY7gn4ng9OdTOQZDZD'
+
+
+def domain_whitelist(domain='https://codingblock.herokuapp.com'):
+    post_message_url = "https://graph.facebook.com/v2.6/me/thread_settings?access_token=%s"%(PAGE_ACCESS_TOKEN)
+    response_object =     {
+                "setting_type" : "domain_whitelisting",
+                "whitelisted_domains" : [domain],
+                "domain_action_type": "add"
+              }
+    response_msg = json.dumps(response_object)
+
+    status = requests.post(post_message_url, 
+                headers={"Content-Type": "application/json"},
+                data=response_msg)
+
+    logg(status.text,symbol='--WHT--')              
+
+
+def save_message(fbid='1160786967320970',message_text='hi'):  
+    url = 'https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s'%(fbid,PAGE_ACCESS_TOKEN)
+    print url
+    resp = requests.get(url=url)
+    data = json.loads(resp.text)
+
+    name = '%s %s'%(data['first_name'],data['last_name'])
+    p = Messages.objects.get_or_create(name=name,
+      profile_url = data['profile_pic'],
+      fb_id = fbid,
+      gender = data['gender'],
+      locale = data['locale'],
+      message = message_text
+      )[0]
+    p.save()
+
+    return json.dumps(data)
 
 
 
@@ -60,11 +97,12 @@ def set_greeting_text():
 
 
 def index(request):
-    set_menu()
+    #set_menu()
+    domain_whitelist()
     handle_postback('fbid','MENU_CALL')
-    post_facebook_message('asd','asdasd')
+    post_facebook_message('1160786967320970','asdasd')
     search_string = request.GET.get('text') or 'foo'
-    output_text = gen_response_object('fbid',item_type='teacher')
+    output_text = save_message()
     return HttpResponse(output_text, content_type='application/json')
 
 
@@ -157,6 +195,8 @@ def post_facebook_message(fbid,message_text):
     post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
     message_text = message_text.lower()
 
+    save_message(fbid,message_text)
+
     if message_text in 'teacher,why,course'.split(','):
         response_msg = gen_response_object(fbid,item_type=message_text)
     else:
@@ -178,7 +218,33 @@ def handle_postback(fbid,payload):
     elif payload == 'MENU_TEACHER':
         return post_facebook_message(fbid,'teacher')
     elif payload == 'MENU_WHY':
-        return post_facebook_message(fbid,'why')
+        response_object = {
+                        "recipient":{
+                          "id":fbid
+                        },
+                        "message":{
+                          "attachment":{
+                            "type":"template",
+                            "payload":{
+                              "template_type":"button",
+                              "text":"What do you want to do next?",
+                              "buttons":[
+                                  {
+                                                  "type":"web_url",
+                                                  "url":"http://codingblocks.herokuapp.com/login?fb_id=%s"%(fbid),
+                                                  "title":"Select Criteria",
+                                                  "webview_height_ratio": "compact"
+                                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+        response_msg = json.dumps(response_object)
+        requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+        
+
+
     elif payload == "MENU_HELP":
         output_text = 'Welcome to CodingBlocks chatbot, you can se this chatbot to ...'
         response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
