@@ -18,9 +18,8 @@ import pprint
 VERIFY_TOKEN = '7thseptember2016'
 PAGE_ACCESS_TOKEN = 'EAAYO3MZBoz10BAN7mWot28ysn3YyJhnNPSIwJiFCzwi5k39M0FnEKkEZCkjZA5rYCnmSI0ikiQVKxycLKc5dc415D4vOPBaA4Y2WpfiOTPd0UNHiDjwivZCZCc404Xrrtam6NQq4OKpFZBE9hMeidP3CZAUHQqcLY7gn4ng9OdTOQZDZD'
 
-
 def scrape_spreadsheet():
-    sheet_id = '1_4NKNJ5_f82RYqwYmv3FqX8w-_6TuGHgDHrA5dTVGUg'
+    sheet_id = '1EXwvmdQV4WaMXtL4Ucn3kwwhS1GOMFu0Nh9ByVCfrxk'
     url = 'https://spreadsheets.google.com/feeds/list/%s/od6/public/values?alt=json'%(sheet_id)
 
     resp = requests.get(url=url)
@@ -58,10 +57,55 @@ def set_greeting_text():
 
 
 def index(request):
+    #set_menu()
+    handle_postback('fbid','MENU_CALL')
     post_facebook_message('asd','asdasd')
     search_string = request.GET.get('text') or 'foo'
     output_text = gen_response_object('fbid',item_type='teacher')
     return HttpResponse(output_text, content_type='application/json')
+
+
+def set_menu():
+    post_message_url = 'https://graph.facebook.com/v2.6/me/thread_settings?access_token=%s'%PAGE_ACCESS_TOKEN
+    
+    response_object =   {
+                          "setting_type" : "call_to_actions",
+                          "thread_state" : "existing_thread",
+                          "call_to_actions":[
+                            {
+                              "type":"postback",
+                              "title":"Help",
+                              "payload":"MENU_HELP"
+                            },
+                            {
+                              "type":"postback",
+                              "title":"Course",
+                              "payload":"MENU_COURSE"
+                            },
+                            {
+                              "type":"postback",
+                              "title":"Teachers",
+                              "payload":"MENU_TEACHER"
+                            },
+                            {
+                              "type":"postback",
+                              "title":"Talk to a human",
+                              "payload":"MENU_CALL"
+                            },
+                            {
+                              "type":"postback",
+                              "title":"Why CodingBlocks",
+                              "payload":"MENU_WHY"
+                            }
+                          ]
+                        }
+
+    menu_object = json.dumps(response_object)
+    status = requests.post(post_message_url,
+          headers = {"Content-Type": "application/json"},
+          data = menu_object)
+
+    logg(status.text,'-MENU-OBJECT-')
 
 
 def gen_response_object(fbid,item_type='course'):
@@ -110,21 +154,12 @@ def post_facebook_message(fbid,message_text):
     post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
     message_text = message_text.lower()
 
-    output_text = message_text
-
-    if message_text in 'teachers,teacher,professors,professor'.split(','):
-        item_type = 'teacher'
+    if message_text in 'teacher,why,course'.split(','):
+        response_msg = gen_response_object(fbid,item_type=message_text)
+    else:
+        output_text = "Hi, how may I help you"
+        response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
     
-    elif message_text in 'why,features,points'.split(','):
-        item_type = 'why'
-
-    elif message_text in 'course,courses,lectures,batch,next batch'.split(','):
-        item_type = 'course'
-
-
-    response_msg = gen_response_object(fbid,item_type='teacher')
-
-    #response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
     requests.post(post_message_url, 
                     headers={"Content-Type": "application/json"},
                     data=response_msg)
@@ -135,12 +170,45 @@ def handle_postback(fbid,payload):
     output_text = 'Payload Recieved: ' + payload
     logg(payload,symbol='*')
 
-    if payload == 'RANDOM_JOKE':
-        post_facebook_message(fbid,'foo')
+    if payload == 'MENU_COURSE':
+        return post_facebook_message(fbid,'course')
+    elif payload == 'MENU_TEACHER':
+        return post_facebook_message(fbid,'teacher')
+    elif payload == 'MENU_WHY':
+        return post_facebook_message(fbid,'why')
+    elif payload == "MENU_HELP":
+        output_text = 'Welcome to CodingBlocks chatbot, you can se this chatbot to ...'
+        response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+        status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+    
+    elif payload == 'MENU_CALL':
 
-    #response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
-    #status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-    return
+        response_object =   {
+                              "recipient":{
+                                "id":fbid
+                              },
+                              "message":{
+                                "attachment":{
+                                  "type":"template",
+                                  "payload":{
+                                    "template_type":"button",
+                                    "text":"Need further assistance? Talk to one of our representative",
+                                    "buttons":[
+                                      {
+                                                "type":"phone_number",
+                                                "title":"Call Us",
+                                                "payload":"+919599586446"
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+        response_msg = json.dumps(response_object)
+        requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+    
+
+    #return
 
 def logg(message,symbol='-'):
     print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
@@ -230,4 +298,4 @@ class MyChatBotView(generic.View):
                 except Exception as e:
                     logg(e,symbol='-332-')
 
-        return HttpResponse()
+        return HttpResponse()  
