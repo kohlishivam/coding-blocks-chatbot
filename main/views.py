@@ -22,7 +22,7 @@ VERIFY_TOKEN = '7thseptember2016'
 PAGE_ACCESS_TOKEN = 'EAAYO3MZBoz10BAN7mWot28ysn3YyJhnNPSIwJiFCzwi5k39M0FnEKkEZCkjZA5rYCnmSI0ikiQVKxycLKc5dc415D4vOPBaA4Y2WpfiOTPd0UNHiDjwivZCZCc404Xrrtam6NQq4OKpFZBE9hMeidP3CZAUHQqcLY7gn4ng9OdTOQZDZD'
 
 
-def domain_whitelist(domain='https://codingblock.herokuapp.com'):
+def domain_whitelist(domain='https://sheltered-crag-27522.herokuapp.com'):
     post_message_url = "https://graph.facebook.com/v2.6/me/thread_settings?access_token=%s"%(PAGE_ACCESS_TOKEN)
     response_object =     {
                 "setting_type" : "domain_whitelisting",
@@ -44,7 +44,7 @@ def save_message(fbid='1160786967320970',message_text='hi'):
     resp = requests.get(url=url)
     data = json.loads(resp.text)
 
-    name = '%s %s'%(data[first_name],data[last_name])
+    #name = '%s %s'%(data['first_name'],data['last_name'])
     p = Messages.objects.get_or_create(name=name,
       profile_url = data['profile_pic'],
       fb_id = fbid,
