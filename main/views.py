@@ -100,7 +100,7 @@ def index(request):
     #set_menu()
     domain_whitelist()
     handle_postback('fbid','MENU_CALL')
-    post_facebook_message('1160786967320970','asdasd')
+    post_facebook_message('1294308050614262','hi')
     search_string = request.GET.get('text') or 'foo'
     output_text = save_message()
     return HttpResponse(output_text, content_type='application/json')
