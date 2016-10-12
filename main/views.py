@@ -38,7 +38,7 @@ def domain_whitelist(domain='https://sheltered-crag-27522.herokuapp.com'):
     logg(status.text,symbol='--WHT--')              
 
 
-def save_message(fbid='1160786967320970',message_text='hi'):  
+def save_message(fbid='1294308050614262',message_text='hi'):  
     url = 'https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s'%(fbid,PAGE_ACCESS_TOKEN)
     print url
     resp = requests.get(url=url)
