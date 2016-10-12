@@ -44,7 +44,7 @@ def save_message(fbid='1160786967320970',message_text='hi'):
     resp = requests.get(url=url)
     data = json.loads(resp.text)
 
-    name = '%s %s'%(data['first_name'],data['last_name'])
+    name = '%s %s'%(data[first_name],data[last_name])
     p = Messages.objects.get_or_create(name=name,
       profile_url = data['profile_pic'],
       fb_id = fbid,
