@@ -3,7 +3,7 @@ from django.contrib import admin
 
 from main.views import MyChatBotView, index
 from dashboard.views import index as dashboard_index 
-from dashboard.views import login
+from dashboard.views import login , register
 
 urlpatterns = patterns('',
     # Examples:
@@ -15,4 +15,5 @@ urlpatterns = patterns('',
     url(r'^$', index),
     url(r'^dashboard/?$', dashboard_index),
     url(r'^login/?$', login),
+    url(r'^register/$', register, name='register'),
 )

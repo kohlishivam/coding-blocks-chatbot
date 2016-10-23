@@ -1,5 +1,7 @@
 {% extends "dashboard/base.html" %}
 
+{% load video_tags %}
+
 {% block head %}
 	
 	<style type="text/css">
@@ -31,6 +33,12 @@
 	  <!-- Tab panes -->
 	  <div class="tab-content">
 	    <div role="tabpanel" class="tab-pane active" id="home">
+	    	
+	    	{% foo %}
+
+	    	{{ 'HI' | lower }}
+
+	    	{% get_result_tag arg1 arg2 arg3 as result %}
 	    	
 	    	<!-- <iframe src="https://docs.google.com/spreadsheets/d/1EXwvmdQV4WaMXtL4Ucn3kwwhS1GOMFu0Nh9ByVCfrxk/edit#gid=0"></iframe>
  -->

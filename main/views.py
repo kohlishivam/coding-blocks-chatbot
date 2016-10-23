@@ -1,28 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from django.shortcuts import render
-from django.http import HttpResponse
-
-from django.views import generic
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-import json
-import requests
-import re
-import random
-import pprint
-# Create your views here.
-
-from dashboard.models import Messages
-
-
-
-VERIFY_TOKEN = '7thseptember2016'
-PAGE_ACCESS_TOKEN = 'EAAYO3MZBoz10BAN7mWot28ysn3YyJhnNPSIwJiFCzwi5k39M0FnEKkEZCkjZA5rYCnmSI0ikiQVKxycLKc5dc415D4vOPBaA4Y2WpfiOTPd0UNHiDjwivZCZCc404Xrrtam6NQq4OKpFZBE9hMeidP3CZAUHQqcLY7gn4ng9OdTOQZDZD'
-
-
-def domain_whitelist(domain='https://sheltered-crag-27522.herokuapp.com'):
+def domain_whitelist(domain='https://codingblock.herokuapp.com'):
     post_message_url = "https://graph.facebook.com/v2.6/me/thread_settings?access_token=%s"%(PAGE_ACCESS_TOKEN)
     response_object =     {
                 "setting_type" : "domain_whitelisting",
@@ -38,7 +14,7 @@ def domain_whitelist(domain='https://sheltered-crag-27522.herokuapp.com'):
     logg(status.text,symbol='--WHT--')              
 
 
-def save_message(fbid='1294308050614262',message_text='hi'):  
+def save_message(fbid='1160786967320970',message_text='hi'):  
     url = 'https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s'%(fbid,PAGE_ACCESS_TOKEN)
     print url
     resp = requests.get(url=url)
@@ -59,7 +35,7 @@ def save_message(fbid='1294308050614262',message_text='hi'):
 
 
 def scrape_spreadsheet():
-    sheet_id = '1_4NKNJ5_f82RYqwYmv3FqX8w-_6TuGHgDHrA5dTVGUg'
+    sheet_id = '1EXwvmdQV4WaMXtL4Ucn3kwwhS1GOMFu0Nh9ByVCfrxk'
     url = 'https://spreadsheets.google.com/feeds/list/%s/od6/public/values?alt=json'%(sheet_id)
 
     resp = requests.get(url=url)
@@ -98,9 +74,9 @@ def set_greeting_text():
 
 def index(request):
     #set_menu()
-    domain_whitelist()
+    #domain_whitelist()
     handle_postback('fbid','MENU_CALL')
-    post_facebook_message('1294308050614262','hi')
+    #post_facebook_message('1160786967320970','/ask hello')
     search_string = request.GET.get('text') or 'foo'
     output_text = save_message()
     return HttpResponse(output_text, content_type='application/json')
@@ -191,14 +167,71 @@ def gen_response_object(fbid,item_type='course'):
 
     return json.dumps(response_object)
 
+
+def gen_answer_object(fbid,keyword='index error'):
+    api_url = 'http://soapi1.herokuapp.com/api/?q=%s'%(keyword)
+    resp = requests.get(url=api_url)
+    item_arr = json.loads(resp.text)
+
+    elements_arr =[]
+    for i in item_arr[:5]:
+        sub_item = {
+                        "title":"Question #%s"%(item_arr.index(i)),
+                        "item_url": "http://stackoverflow.com/q/%s"%(i['id']),
+                        "image_url":i['image'],
+                        "subtitle":i['title'],
+                        "buttons":[
+                          {
+                            "type":"web_url",
+                            "url":i['answers'][0],
+                            "title":"Answer 1"
+                          },
+                          {
+                            "type":"web_url",
+                            "url":i['answers'][1],
+                            "title":"Answer 2"
+                          },
+                          {
+                            "type":"element_share"
+                          }              
+                        ]
+                      }
+        elements_arr.append(sub_item)
+
+
+    response_object = {
+              "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "attachment":{
+                  "type":"template",
+                  "payload":{
+                    "template_type":"generic",
+                    "elements":elements_arr
+                  }
+                }
+              }
+            }
+
+    return json.dumps(response_object)
+
+
+
 def post_facebook_message(fbid,message_text):
     post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
     message_text = message_text.lower()
 
     save_message(fbid,message_text)
 
+
     if message_text in 'teacher,why,course'.split(','):
         response_msg = gen_response_object(fbid,item_type=message_text)
+    
+    elif message_text.startswith('/ask'):
+        query = message_text.replace('/ask','')
+        response_msg = gen_answer_object(fbid,query)
+    
     else:
         output_text = "Hi, how may I help you"
         response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
@@ -367,4 +400,4 @@ class MyChatBotView(generic.View):
                 except Exception as e:
                     logg(e,symbol='-332-')
 
-        return HttpResponse()  
+        return HttpResponse() 
