@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 
-{% load video_tags %}
+{% load my_tags %}
+
 
 {% block head %}
 	
@@ -10,44 +11,37 @@
 			height: 100%;
 			min-height: 600px;
 		}
+		body{
+			//background-color: {% random_colour %} !important;
+		}	
 	</style>
-
 {% endblock head %}
-
-
 {% block content %}
-
-
 <div class='row'>
-
 	<div class="col-md-8 col-md-offset-2">
-
 	  <!-- Nav tabs -->
 	  <ul class="nav nav-tabs" role="tablist">
-	    <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">DataSheet</a></li>
-	    <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Profile</a></li>
-	    <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
-	    <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>
+	   	 	<li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">DataSheet</a></li>
+	    	<li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Profile</a></li>
+	    	<li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
+	    	<li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>
 	  </ul>
-
 	  <!-- Tab panes -->
 	  <div class="tab-content">
 	    <div role="tabpanel" class="tab-pane active" id="home">
-	    	
-	    	{% foo %}
-
-	    	{{ 'HI' | lower }}
-
-	    	{% get_result_tag arg1 arg2 arg3 as result %}
-	    	
+	    	{{ 'HELLOOOOO' | lower }}
+	    	<br>
+	    	{% concat 'HI' 'Hi' 'Yo' as result %}
+	    	<br>
+	    	{% current_time '%j day of the year %Y' %}
+	    	<br>
+	    	{{ result }}
 	    	<!-- <iframe src="https://docs.google.com/spreadsheets/d/1EXwvmdQV4WaMXtL4Ucn3kwwhS1GOMFu0Nh9ByVCfrxk/edit#gid=0"></iframe>
  -->
 	    </div>
 	    <div role="tabpanel" class="tab-pane" id="profile">profile</div>
 	    <div role="tabpanel" class="tab-pane" id="messages">
-
 	    	{% for message in data %}
-
 	    		<div class="row">
 	    		  
 	    		  <div class="col-md-4">
@@ -63,19 +57,11 @@
 	    		  </div>
 	    		
 	    		</div>
-
 	    		<hr>
 	    	{% endfor %}
-
 	    </div>
 	    <div role="tabpanel" class="tab-pane" id="settings">settings</div>
 	  </div>
-
 	</div>
-
 </div>
-
-
-
-
 {% endblock content %}
